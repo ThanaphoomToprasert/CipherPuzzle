@@ -1,6 +1,7 @@
 :root {
     --color-green: #538d4e;
     --color-yellow: #b59f3b;
+    --color-blue: #4a90e2; /* New color */
     --color-gray: #3a3a3c;
     --color-light-gray: #818384;
     --key-bg: #d3d6da;
@@ -48,7 +49,7 @@ header h1 {
     grid-template-rows: repeat(6, 1fr);
     gap: 5px;
     padding: 10px;
-    margin-top: 20px;
+    margin-top: 1px;
 }
 
 .guess-row {
@@ -78,6 +79,10 @@ header h1 {
     background-color: var(--color-yellow);
     border-color: var(--color-yellow);
 }
+.guess-tile.blue { /* New style */
+    background-color: var(--color-blue);
+    border-color: var(--color-blue);
+}
 .guess-tile.gray {
     background-color: var(--color-gray);
     border-color: var(--color-gray);
@@ -93,7 +98,7 @@ header h1 {
     gap: 8px;
     width: 100%;
     max-width: 300px;
-    margin-bottom: 10px;
+    /* margin-bottom: 10px; Removed for legend */
     padding: 0 10px;
     box-sizing: border-box; 
 }
@@ -121,6 +126,7 @@ header h1 {
 /* Key feedback colors */
 .key.green { background-color: var(--color-green); color: white; }
 .key.yellow { background-color: var(--color-yellow); color: white; }
+.key.blue { background-color: var(--color-blue); color: white; } /* New style */
 .key.gray { background-color: var(--color-gray); color: white; }
 
 /* Statistics Modal */
@@ -232,6 +238,52 @@ header h1 {
     -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
     animation: fadein 0.5s, fadeout 0.5s 2.5s;
 }
+
+/* --- Legend Styles --- */
+#legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 15px; /* Added margin */
+    margin-bottom: 20px;
+    padding: 0 10px;
+    width: 100%;
+    margin-top: 10px;
+    max-width: 350px;
+    box-sizing: border-box;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.legend-tile {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    flex-shrink: 0; /* Prevents shrinking */
+}
+
+.legend-tile.green {
+    background-color: var(--color-green);
+    border-color: var(--color-green);
+}
+.legend-tile.yellow {
+    background-color: var(--color-yellow);
+    border-color: var(--color-yellow);
+}
+.legend-tile.blue {
+    background-color: var(--color-blue);
+    border-color: var(--color-blue);
+}
+.legend-tile.gray {
+    background-color: var(--color-gray);
+    border-color: var(--color-gray);
+}
+
 
 @keyframes fadein {
     from {top: 0; opacity: 0;}

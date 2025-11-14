@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let secretCode = '';
     let currentAttempt = 0;
     let currentGuess = [];
+    let secretCodeCounts = {};
     let gameStatus = 'playing'; // 'playing', 'won', 'lost'
 
     // --- Statistics State ---
@@ -54,6 +55,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function startNewRound() {
         secretCode = generateSecretCode();
+        secretCodeCounts = {}; // Reset the counts
+        for (const char of secretCode.split('')) {
+            secretCodeCounts[char] = (secretCodeCounts[char] || 0) + 1;
+        }
+
         currentAttempt = 0;
         currentGuess = [];
         gameStatus = 'playing';
@@ -154,39 +160,89 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Guess Logic ---
     function submitGuess() {
         const guess = currentGuess.join('');
+        // 1. Get the basic 'green', 'yellow', 'gray' feedback
         const feedback = checkGuess(guess);
         
-        // Update grid with feedback colors
+        // 2. Create the final feedback array to apply your new logic
+        const finalFeedback = [...feedback]; // Start with a copy
+
+        // 3. Loop through the feedback to apply Blue/Green duplicate logic
+        for (let i = 0; i < CODE_LENGTH; i++) {
+            const digit = guess[i];
+            const originalColor = feedback[i];
+            
+            // Only apply new logic to 'green' tiles that are part of a duplicate set
+            if (originalColor === 'green' && secretCodeCounts[digit] > 1) {
+                
+                let allDuplicatesAreGreen = true;
+                
+                // Check all *other* instances of this same digit in the *guess*
+                for (let j = 0; j < CODE_LENGTH; j++) {
+                    if (guess[j] === digit && feedback[j] !== 'green') {
+                        // Found an instance of this digit that wasn't 'green'
+                        // (it was yellow or gray)
+                        allDuplicatesAreGreen = false;
+                        break; 
+                    }
+                }
+
+                // --- APPLY YOUR RULES ---
+                if (allDuplicatesAreGreen) {
+                    // "change to green when all duplicates are in the correct position"
+                    finalFeedback[i] = 'green';
+                } else {
+                    // "change to blue when it's in the correct place but has another duplicate"
+                    // (and that other duplicate is NOT in the right place)
+                    finalFeedback[i] = 'blue';
+                }
+            }
+            // "change to yellow when it's Correct digit but wrong position"
+            // (This is already handled, as 'yellow' tiles are not 'green'
+            // and will just be kept from the original 'feedback' array)
+        }
+        
+        // --- 4. Update Grid with finalFeedback ---
         const row = gameBoard.children[currentAttempt];
-        feedback.forEach((color, index) => {
-            row.children[index].classList.add(color);
+        finalFeedback.forEach((color, index) => {
+            const tile = row.children[index];
+            tile.classList.add(color);
         });
 
-        // Update keypad with feedback colors
+        // --- 5. Update Keypad with finalFeedback ---
         currentGuess.forEach((key, index) => {
             const keyElement = document.querySelector(`.key[data-key="${key}"]`);
-            const currentColor = feedback[index];
+            
+            // Use the finalFeedback color directly as the target
+            const targetColor = finalFeedback[index]; 
 
-            // Only upgrade color, don't downgrade (green > yellow > gray)
-            if (currentColor === 'green') {
+            // Apply "upgrade-only" logic (never downgrade a key)
+            if (targetColor === 'blue') {
+                // Blue overrides everything
+                keyElement.classList.remove('green', 'yellow', 'gray');
+                keyElement.classList.add('blue');
+            } else if (targetColor === 'green' && !keyElement.classList.contains('blue')) {
+                // Green overrides yellow/gray, but not blue
                 keyElement.classList.remove('yellow', 'gray');
                 keyElement.classList.add('green');
-            } else if (currentColor === 'yellow' && !keyElement.classList.contains('green')) {
+            } else if (targetColor === 'yellow' && !keyElement.classList.contains('blue') && !keyElement.classList.contains('green')) {
+                // Yellow overrides gray, but not blue/green
                 keyElement.classList.remove('gray');
                 keyElement.classList.add('yellow');
-            } else if (!keyElement.classList.contains('green') && !keyElement.classList.contains('yellow')) {
+            } else if (targetColor === 'gray' && !keyElement.classList.contains('blue') && !keyElement.classList.contains('green') && !keyElement.classList.contains('yellow')) {
+                // Gray only applies if no other color is set
                 keyElement.classList.add('gray');
             }
         });
         
+        // --- 6. Send to Supabase ---
         sendAttemptToSupabase({
             guess: guess,
-            feedback: feedback, // The array ['green', 'yellow', ...]
-            secret_code: secretCode, // The target code
-            attempt_number: currentAttempt + 1 // The attempt number
+            feedback: finalFeedback, // Send the final, correct feedback
+            secret_code: secretCode, 
+            attempt_number: currentAttempt + 1
         });
 
-        // Check for win
+        // --- 7. Check for Win/Loss ---
         if (guess === secretCode) {
             gameStatus = 'won';
             showToast('You Won!');
@@ -196,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Check for loss
         if (currentAttempt === MAX_ATTEMPTS - 1) {
             gameStatus = 'lost';
             showToast(`You Lost! Code was: ${secretCode}`);
@@ -206,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Move to next attempt
+        // --- 8. Move to next attempt ---
         currentAttempt++;
         currentGuess = [];
     }
