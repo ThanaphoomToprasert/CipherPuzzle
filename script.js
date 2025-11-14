@@ -174,31 +174,37 @@ document.addEventListener('DOMContentLoaded', () => {
             // Only apply new logic to 'green' tiles that are part of a duplicate set
             if (originalColor === 'green' && secretCodeCounts[digit] > 1) {
                 
-                let allDuplicatesAreGreen = true;
+                let allGuessedDuplicatesAreGreen = true;
+                let guessedDuplicateCount = 0;
                 
-                // Check all *other* instances of this same digit in the *guess*
+                // Check all instances of this digit *in the guess*
                 for (let j = 0; j < CODE_LENGTH; j++) {
-                    if (guess[j] === digit && feedback[j] !== 'green') {
-                        // Found an instance of this digit that wasn't 'green'
-                        // (it was yellow or gray)
-                        allDuplicatesAreGreen = false;
-                        break; 
+                    if (guess[j] === digit) {
+                        guessedDuplicateCount++;
+                        if (feedback[j] !== 'green') {
+                            // Found an instance of this digit that was yellow or gray
+                            allGuessedDuplicatesAreGreen = false;
+                            break; 
+                        }
                     }
                 }
 
-                // --- APPLY YOUR RULES ---
-                if (allDuplicatesAreGreen) {
+                // --- APPLY YOUR RULES (with the fix) ---
+                if (allGuessedDuplicatesAreGreen && guessedDuplicateCount === secretCodeCounts[digit]) {
                     // "change to green when all duplicates are in the correct position"
+                    // This is only true if ALL guessed duplicates are green AND
+                    // we've found the correct *number* of duplicates.
                     finalFeedback[i] = 'green';
                 } else {
                     // "change to blue when it's in the correct place but has another duplicate"
-                    // (and that other duplicate is NOT in the right place)
+                    // This will now correctly trigger if:
+                    // 1. Another guessed duplicate is yellow/gray.
+                    // 2. Not all duplicates from the secret code were found (count mismatch).
                     finalFeedback[i] = 'blue';
                 }
             }
-            // "change to yellow when it's Correct digit but wrong position"
-            // (This is already handled, as 'yellow' tiles are not 'green'
-            // and will just be kept from the original 'feedback' array)
+            // "change to yellow..." is already handled, as 'yellow' tiles
+            // are not 'green' and will be skipped by this if-block.
         }
         
         // --- 4. Update Grid with finalFeedback ---
