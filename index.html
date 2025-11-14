@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher Cracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Cipher Cracker</h1>
+        <button id="stats-button">📊</button>
+    </header>
+
+    <div id="game-board">
+        </div>
+
+    <div id="keypad">
+        <button class="key" data-key="7">7</button>
+        <button class="key" data-key="8">8</button>
+        <button class="key" data-key="9">9</button>
+        <button class="key" data-key="4">4</button>
+        <button class="key" data-key="5">5</button>
+        <button class="key" data-key="6">6</button>
+        <button class="key" data-key="1">1</button>
+        <button class="key" data-key="2">2</button>
+        <button class="key" data-key="3">3</button>
+        <button class="key" data-key="BACKSPACE">⌫</button>
+        <button class="key" data-key="0">0</button>
+        <button class="key" data-key="ENTER">ENTER</button>
+    </div>
+
+    <div id="stats-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div id="stats-played" class="stat-value">0</div>
+                    <div class="stat-label">Played</div>
+                </div>
+                <div class="stat-item">
+                    <div id="stats-won" class="stat-value">0</div>
+                    <div class="stat-label">Won</div>
+                </div>
+                <div class="stat-item">
+                    <div id="stats-streak" class="stat-value">0</div>
+                    <div class="stat-label">Current Streak</div>
+                </div>
+                <div class="stat-item">
+                    <div id="stats-max-streak" class="stat-value">0</div>
+                    <div class="stat-label">Max Streak</div>
+                </div>
+            </div>
+            <h3>Guess Distribution</h3>
+            <div id="guess-distribution" class="dist-chart">
+                </div>
+            <button id="new-game-button">New Game</button>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
